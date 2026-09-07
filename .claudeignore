@@ -1,0 +1,16 @@
+# --- Claude Code Ignore List ---
+
+# 1. 민감한 설정 및 비밀값 (Legacy 핵심 보안)
+.env
+*.env.*
+config/database.yml
+config/settings.local.php
+Web.config
+App.config
+connection.properties
+*.pem
+*.key
+*p12
+
+# 2. 레거시 빌드 및 아티팩트
+

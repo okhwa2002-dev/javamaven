@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/*.env.*)",
+      "Read(./config/database.yml)",
+      "Read(./config/settings.local.php)",
+      "Read(./**/Web.config)",
+      "Read(./**/App.config)",
+      "Read(./**/connection.properties)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/*.p12)"
+    ]
+  }
+}
