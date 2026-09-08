@@ -41,6 +41,15 @@ mybatis:
 server:
   port: 8080
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+
 logging:
   level:
     root: INFO
@@ -73,6 +82,13 @@ mybatis:
 
 server:
   port: 80
+
+# API 명세 외부 노출 방지를 위해 prod에서는 비활성화
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 logging:
   level:
