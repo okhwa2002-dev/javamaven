@@ -8,6 +8,8 @@ public interface UserMapper {
 
     UserDto selectById(Long id);
 
+    UserDto selectByLoginId(String loginId);
+
     List<UserDto> selectAll();
 
     int insert(UserDto user);
