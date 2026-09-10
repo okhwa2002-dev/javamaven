@@ -3,8 +3,10 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.mapper.UserMapper">
 
+    <!-- password는 의도적으로 제외한다. 해시가 조회 응답에 실리지 않도록
+         인증용 selectByLoginId 에서만 별도로 가져온다. -->
     <sql id="userColumns">
-        id, user_name, email, created_at, updated_at
+        id, username, email, login_id, created_at, updated_at
     </sql>
 
     <select id="selectById" parameterType="long" resultType="UserDto">
@@ -19,9 +21,15 @@
         ORDER BY id DESC
     </select>
 
+    <select id="selectByLoginId" parameterType="string" resultType="UserDto">
+        SELECT <include refid="userColumns"/>, password
+        FROM users
+        WHERE login_id = #{loginId}
+    </select>
+
     <insert id="insert" parameterType="UserDto" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (user_name, email, created_at, updated_at)
-        VALUES (#{username}, #{email}, NOW(), NOW())
+        INSERT INTO users (username, email, login_id, password, created_at, updated_at)
+        VALUES (#{username}, #{email}, #{loginId}, #{password}, NOW(), NOW())
     </insert>
 
     <update id="update" parameterType="UserDto">

@@ -14,6 +14,12 @@ logging:
 security:
   param-filter:
     enabled: true
+  jwt:
+    # 서명 키는 자격증명이므로 기본값을 두지 않는다. 32바이트 이상 필요.
+    # 미설정 시 dev 는 임의 키를 생성하고(재기동 시 토큰 무효), prod 는 기동을 중단한다.
+    secret: ${JWT_SECRET:}
+    expiration-minutes: 60
+    issuer: javamaven
 
 ---
 spring:
@@ -96,5 +102,4 @@ logging:
     root: WARN
     com: INFO
     org.mybatis: WARN
-  file:
-    name: D:\var\log\app\application.log
+# 로그 파일 경로/롤링 정책은 logback-spring.xml 에서 관리한다 (LOG_DIR, LOG_NAME 로 재정의).

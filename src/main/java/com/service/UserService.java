@@ -4,6 +4,7 @@ import com.cmn.exception.NotFoundException;
 import com.domain.UserDto;
 import com.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,7 @@ import java.util.List;
 public class UserService {
 
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public UserDto findById(Long id) {
@@ -31,6 +33,14 @@ public class UserService {
 
     @Transactional
     public UserDto create(UserDto user) {
+        if (user.getLoginId() == null || user.getLoginId().isBlank()) {
+            throw new IllegalArgumentException("loginId is required");
+        }
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            throw new IllegalArgumentException("password is required");
+        }
+        // 평문이 DB에 저장되지 않도록 반드시 인코딩 후 저장한다.
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userMapper.insert(user);
         return user;
     }
