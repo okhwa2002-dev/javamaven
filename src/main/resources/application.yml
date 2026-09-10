@@ -96,5 +96,4 @@ logging:
     root: WARN
     com: INFO
     org.mybatis: WARN
-  file:
-    name: D:\var\log\app\application.log
+# 로그 파일 경로/롤링 정책은 logback-spring.xml 에서 관리한다 (LOG_DIR, LOG_NAME 로 재정의).
