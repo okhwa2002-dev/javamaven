@@ -3,6 +3,7 @@ package com.service;
 import com.cmn.exception.NotFoundException;
 import com.domain.UserCreateRequest;
 import com.domain.UserDto;
+import com.domain.UserUpdateRequest;
 import com.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,8 +46,11 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto update(Long id, UserDto user) {
+    public UserDto update(Long id, UserUpdateRequest request) {
+        UserDto user = new UserDto();
         user.setId(id);
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
         int updated = userMapper.update(user);
         if (updated == 0) {
             throw new NotFoundException("User not found: " + id);
