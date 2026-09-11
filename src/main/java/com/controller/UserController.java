@@ -3,6 +3,7 @@ package com.controller;
 import com.cmn.exception.ErrorResponse;
 import com.domain.UserCreateRequest;
 import com.domain.UserDto;
+import com.domain.UserUpdateRequest;
 import com.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -67,8 +68,8 @@ public class UserController {
     })
     @PutMapping("/{id}")
     public UserDto update(@Parameter(description = "사용자 id", example = "1") @PathVariable Long id,
-                          @RequestBody UserDto user) {
-        return userService.update(id, user);
+                          @Valid @RequestBody UserUpdateRequest request) {
+        return userService.update(id, request);
     }
 
     @Operation(summary = "사용자 삭제", description = "id에 해당하는 사용자를 삭제한다.")
