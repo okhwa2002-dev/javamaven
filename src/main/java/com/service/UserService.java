@@ -1,6 +1,7 @@
 package com.service;
 
 import com.cmn.exception.NotFoundException;
+import com.domain.UserCreateRequest;
 import com.domain.UserDto;
 import com.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,15 +33,13 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto create(UserDto user) {
-        if (user.getLoginId() == null || user.getLoginId().isBlank()) {
-            throw new IllegalArgumentException("loginId is required");
-        }
-        if (user.getPassword() == null || user.getPassword().isBlank()) {
-            throw new IllegalArgumentException("password is required");
-        }
+    public UserDto create(UserCreateRequest request) {
+        UserDto user = new UserDto();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setLoginId(request.getLoginId());
         // 평문이 DB에 저장되지 않도록 반드시 인코딩 후 저장한다.
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         userMapper.insert(user);
         return user;
     }

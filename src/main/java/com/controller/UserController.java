@@ -1,6 +1,7 @@
 package com.controller;
 
 import com.cmn.exception.ErrorResponse;
+import com.domain.UserCreateRequest;
 import com.domain.UserDto;
 import com.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -52,8 +54,8 @@ public class UserController {
     @Operation(summary = "사용자 등록", description = "새 사용자를 생성한다.")
     @ApiResponse(responseCode = "200", description = "생성 성공")
     @PostMapping
-    public ResponseEntity<UserDto> create(@RequestBody UserDto user) {
-        UserDto created = userService.create(user);
+    public ResponseEntity<UserDto> create(@Valid @RequestBody UserCreateRequest request) {
+        UserDto created = userService.create(request);
         return ResponseEntity.ok(created);
     }
 

@@ -26,13 +26,6 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
-        if (request.getLoginId() == null || request.getLoginId().isBlank()) {
-            throw new IllegalArgumentException("loginId is required");
-        }
-        if (request.getPassword() == null || request.getPassword().isBlank()) {
-            throw new IllegalArgumentException("password is required");
-        }
-
         UserDto user = userMapper.selectByLoginId(request.getLoginId());
         if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             // 입력한 비밀번호는 로그에 남기지 않는다.
