@@ -23,7 +23,7 @@ src/main/
 └── resources/
     ├── application.yml    # dev/prod 프로필 한 파일에 통합
     ├── mapper/            # MyBatis XML 매퍼 (classpath:mapper/**/*.xml)
-    └── schema.sql         # 테이블 DDL (수동 실행)
+    └── db/migration/      # Flyway 마이그레이션 (V1__init.sql, V2__xxx.sql ...)
 ```
 
 ## 실행

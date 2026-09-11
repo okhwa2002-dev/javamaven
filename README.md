@@ -33,7 +33,7 @@ src/main/
 └── resources/
     ├── application.yml      # dev/prod 프로필 통합
     ├── mapper/              # MyBatis XML 매퍼
-    └── schema.sql           # 테이블 DDL
+    └── db/migration/        # Flyway 마이그레이션 (V1__init.sql, V2__xxx.sql ...)
 ```
 
 ## 실행 환경
@@ -50,7 +50,7 @@ docker compose up -d postgres
 
 ### 2. 스키마 생성
 
-컨테이너 최초 기동 시 `schema.sql`이 자동 적용됩니다. 이후 변경분은 수동 반영.
+스키마는 애플리케이션 기동 시 **Flyway** 가 `src/main/resources/db/migration/V*.sql` 을 순차 적용합니다. 새 변경분은 새 파일(`V2__xxx.sql`, `V3__xxx.sql` …)로 추가하며, 이미 배포된 파일은 수정하지 않습니다.
 
 ### 3. 애플리케이션 실행
 
