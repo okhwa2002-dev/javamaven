@@ -17,7 +17,10 @@ public class JwtProperties {
     private String secret;
 
     /** 액세스 토큰 유효 시간(분). */
-    private long expirationMinutes = 60;
+    private long expirationMinutes = 15;
+
+    /** 리프레시 토큰 유효 시간(일). */
+    private long refreshExpirationDays = 14;
 
     /** 토큰 발급자(iss) 클레임. */
     private String issuer = "javamaven";

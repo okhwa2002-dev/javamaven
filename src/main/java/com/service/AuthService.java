@@ -4,6 +4,7 @@ import com.cmn.exception.UnauthorizedException;
 import com.cmn.jwt.JwtTokenProvider;
 import com.domain.LoginRequest;
 import com.domain.LoginResponse;
+import com.domain.TokenResponse;
 import com.domain.UserDto;
 import com.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,9 @@ public class AuthService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         UserDto user = userMapper.selectByLoginId(request.getLoginId());
         if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -34,7 +36,32 @@ public class AuthService {
         }
 
         String accessToken = tokenProvider.createToken(user.getId(), user.getLoginId());
+        String refreshToken = refreshTokenService.issue(user.getId());
         return new LoginResponse(user.getId(), user.getLoginId(), user.getUsername(), user.getEmail(),
-                accessToken, tokenProvider.getExpiresInSeconds());
+                accessToken, refreshToken, tokenProvider.getExpiresInSeconds());
+    }
+
+    /**
+     * 리프레시 토큰을 회전하며 새 액세스 토큰을 발급한다.
+     * 리프레시가 유효하지 않으면 401.
+     */
+    @Transactional
+    public TokenResponse refresh(String rawRefreshToken) {
+        RefreshTokenService.Rotation rotation = refreshTokenService.rotate(rawRefreshToken);
+        UserDto user = userMapper.selectById(rotation.userId());
+        if (user == null) {
+            // refresh_tokens 에는 있으나 users 는 삭제된 예외 상태
+            throw new UnauthorizedException("유효하지 않은 리프레시 토큰입니다.");
+        }
+        String accessToken = tokenProvider.createToken(user.getId(), user.getLoginId());
+        return new TokenResponse(accessToken, rotation.rawToken(), tokenProvider.getExpiresInSeconds());
+    }
+
+    /**
+     * 로그아웃. 제출된 리프레시 토큰만 폐기한다(같은 유저의 다른 세션은 유지).
+     */
+    @Transactional
+    public void logout(String rawRefreshToken) {
+        refreshTokenService.revoke(rawRefreshToken);
     }
 }

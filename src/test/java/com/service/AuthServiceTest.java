@@ -4,6 +4,7 @@ import com.cmn.exception.UnauthorizedException;
 import com.cmn.jwt.JwtTokenProvider;
 import com.domain.LoginRequest;
 import com.domain.LoginResponse;
+import com.domain.TokenResponse;
 import com.domain.UserDto;
 import com.mapper.UserMapper;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ class AuthServiceTest {
     @Mock UserMapper userMapper;
     @Mock PasswordEncoder passwordEncoder;
     @Mock JwtTokenProvider tokenProvider;
+    @Mock RefreshTokenService refreshTokenService;
     @InjectMocks AuthService authService;
 
     private LoginRequest req(String loginId, String password) {
@@ -44,12 +46,15 @@ class AuthServiceTest {
         return u;
     }
 
+    // ---------- login ----------
+
     @Test
-    void login_success_returnsIssuedToken() {
+    void login_success_returnsIssuedTokens() {
         when(userMapper.selectByLoginId("hong")).thenReturn(storedUser());
         when(passwordEncoder.matches("plain", "$2a$10$hashedvalue")).thenReturn(true);
-        when(tokenProvider.createToken(1L, "hong")).thenReturn("jwt-token");
-        when(tokenProvider.getExpiresInSeconds()).thenReturn(3600L);
+        when(tokenProvider.createToken(1L, "hong")).thenReturn("jwt-access");
+        when(refreshTokenService.issue(1L)).thenReturn("refresh-abc");
+        when(tokenProvider.getExpiresInSeconds()).thenReturn(900L);
 
         LoginResponse res = authService.login(req("hong", "plain"));
 
@@ -57,23 +62,25 @@ class AuthServiceTest {
         assertEquals("hong", res.getLoginId());
         assertEquals("홍길동", res.getUsername());
         assertEquals("hong@example.com", res.getEmail());
-        assertEquals("jwt-token", res.getAccessToken());
-        assertEquals(3600L, res.getExpiresIn());
+        assertEquals("jwt-access", res.getAccessToken());
+        assertEquals("refresh-abc", res.getRefreshToken());
+        assertEquals(900L, res.getExpiresIn());
         assertEquals("Bearer", res.getTokenType());
     }
 
     @Test
-    void login_userNotFound_throwsUnauthorized_andDoesNotIssueToken() {
+    void login_userNotFound_throwsUnauthorized_andDoesNotIssueTokens() {
         when(userMapper.selectByLoginId("nobody")).thenReturn(null);
 
         assertThrows(UnauthorizedException.class,
                 () -> authService.login(req("nobody", "any")));
 
         verifyNoInteractions(tokenProvider);
+        verifyNoInteractions(refreshTokenService);
     }
 
     @Test
-    void login_wrongPassword_throwsUnauthorized_andDoesNotIssueToken() {
+    void login_wrongPassword_throwsUnauthorized_andDoesNotIssueTokens() {
         when(userMapper.selectByLoginId("hong")).thenReturn(storedUser());
         when(passwordEncoder.matches("bad", "$2a$10$hashedvalue")).thenReturn(false);
 
@@ -81,6 +88,7 @@ class AuthServiceTest {
                 () -> authService.login(req("hong", "bad")));
 
         verifyNoInteractions(tokenProvider);
+        verifyNoInteractions(refreshTokenService);
     }
 
     @Test
@@ -88,10 +96,49 @@ class AuthServiceTest {
         when(userMapper.selectByLoginId("hong")).thenReturn(storedUser());
         when(passwordEncoder.matches("plain", "$2a$10$hashedvalue")).thenReturn(true);
         when(tokenProvider.createToken(1L, "hong")).thenReturn("t");
+        when(refreshTokenService.issue(1L)).thenReturn("r");
         when(tokenProvider.getExpiresInSeconds()).thenReturn(60L);
 
         authService.login(req("hong", "plain"));
 
         verify(passwordEncoder).matches("plain", "$2a$10$hashedvalue");
+    }
+
+    // ---------- refresh ----------
+
+    @Test
+    void refresh_success_rotatesAndIssuesNewAccessToken() {
+        when(refreshTokenService.rotate("old-refresh"))
+                .thenReturn(new RefreshTokenService.Rotation(1L, "new-refresh"));
+        UserDto user = storedUser();
+        when(userMapper.selectById(1L)).thenReturn(user);
+        when(tokenProvider.createToken(1L, "hong")).thenReturn("new-access");
+        when(tokenProvider.getExpiresInSeconds()).thenReturn(900L);
+
+        TokenResponse res = authService.refresh("old-refresh");
+
+        assertEquals("new-access", res.getAccessToken());
+        assertEquals("new-refresh", res.getRefreshToken());
+        assertEquals(900L, res.getExpiresIn());
+        assertEquals("Bearer", res.getTokenType());
+    }
+
+    @Test
+    void refresh_userMissing_throwsUnauthorized() {
+        when(refreshTokenService.rotate("old-refresh"))
+                .thenReturn(new RefreshTokenService.Rotation(99L, "new-refresh"));
+        when(userMapper.selectById(99L)).thenReturn(null);
+
+        assertThrows(UnauthorizedException.class,
+                () -> authService.refresh("old-refresh"));
+    }
+
+    // ---------- logout ----------
+
+    @Test
+    void logout_delegatesToRefreshTokenService() {
+        authService.logout("some-refresh");
+
+        verify(refreshTokenService).revoke("some-refresh");
     }
 }
