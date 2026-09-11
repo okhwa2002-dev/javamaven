@@ -22,19 +22,23 @@ public class LoginResponse {
     @Schema(description = "액세스 토큰", example = "eyJhbGciOiJIUzI1NiJ9...")
     private final String accessToken;
 
+    @Schema(description = "리프레시 토큰(재발급용)")
+    private final String refreshToken;
+
     @Schema(description = "토큰 타입", example = "Bearer")
     private final String tokenType = "Bearer";
 
-    @Schema(description = "토큰 유효 시간(초)", example = "3600")
+    @Schema(description = "액세스 토큰 유효 시간(초)", example = "900")
     private final long expiresIn;
 
     public LoginResponse(Long id, String loginId, String username, String email,
-                         String accessToken, long expiresIn) {
+                         String accessToken, String refreshToken, long expiresIn) {
         this.id = id;
         this.loginId = loginId;
         this.username = username;
         this.email = email;
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
         this.expiresIn = expiresIn;
     }
 }
