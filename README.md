@@ -79,10 +79,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 | `JWT_SECRET` | 미설정 시 임의 키 자동 생성 | **필수** (없으면 기동 중단) | HMAC-SHA256 서명 키. 32바이트 이상 |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | 필수 | CORS 허용 origin |
 
-`JWT_SECRET` 생성 예:
-```bash
-openssl rand -base64 48
-```
+`JWT_SECRET` 생성·주입 상세 절차는 [docs/jwt-secret-setup.md](docs/jwt-secret-setup.md) 참고.
 
 ## API 개요
 
