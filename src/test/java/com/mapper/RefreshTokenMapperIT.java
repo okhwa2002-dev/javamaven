@@ -87,6 +87,26 @@ class RefreshTokenMapperIT {
     }
 
     @Test
+    void deleteExpired_removesOnlyExpiredRows() {
+        Long uid = insertUser("rt-clean");
+
+        // 만료된 것
+        RefreshToken expired = newToken(uid, "hash-expired");
+        expired.setExpiresAt(LocalDateTime.now().minusMinutes(1));
+        refreshTokenMapper.insert(expired);
+
+        // 만료되지 않은 것
+        RefreshToken valid = newToken(uid, "hash-valid");
+        refreshTokenMapper.insert(valid);
+
+        int removed = refreshTokenMapper.deleteExpired();
+
+        assertEquals(1, removed, "만료된 행 하나만 삭제되어야 한다");
+        assertNull(refreshTokenMapper.selectByHash("hash-expired"));
+        assertNotNull(refreshTokenMapper.selectByHash("hash-valid"));
+    }
+
+    @Test
     void userDelete_cascadesToRefreshTokens() {
         Long uid = insertUser("rt3");
         RefreshToken t = newToken(uid, "hash-3");
