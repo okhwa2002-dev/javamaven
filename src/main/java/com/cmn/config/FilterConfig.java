@@ -2,6 +2,7 @@ package com.cmn.config;
 
 import com.cmn.filter.ParamFilterProperties;
 import com.cmn.filter.ParameterSecurityFilter;
+import com.cmn.filter.SecurityHeadersFilter;
 import com.cmn.filter.SqlKeywordDetector;
 import com.cmn.filter.XssPatternDetector;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +37,16 @@ public class FilterConfig {
         registration.addUrlPatterns("/*");
         registration.setEnabled(props.isEnabled());
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
+        return registration;
+    }
+
+    @Bean
+    public FilterRegistrationBean<SecurityHeadersFilter> securityHeadersFilterRegistration() {
+        FilterRegistrationBean<SecurityHeadersFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new SecurityHeadersFilter());
+        registration.addUrlPatterns("/*");
+        // 파라미터 검사 필터보다 뒤에 두어 응답 시점에 헤더를 부여한다.
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 20);
         return registration;
     }
 }
