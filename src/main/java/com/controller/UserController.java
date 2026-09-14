@@ -1,6 +1,7 @@
 package com.controller;
 
 import com.cmn.exception.ErrorResponse;
+import com.domain.PageResponse;
 import com.domain.UserCreateRequest;
 import com.domain.UserDto;
 import com.domain.UserUpdateRequest;
@@ -22,9 +23,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @Tag(name = "User", description = "사용자 CRUD API")
 @RestController
@@ -34,11 +34,16 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "사용자 목록 조회", description = "등록된 전체 사용자를 반환한다.")
+    @Operation(summary = "사용자 목록 조회",
+               description = "사용자를 페이지 단위로 반환한다. page 는 0-indexed, size 는 1~100 범위.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
-    public List<UserDto> list() {
-        return userService.findAll();
+    public PageResponse<UserDto> list(
+            @Parameter(description = "페이지 번호(0부터 시작)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기", example = "20")
+            @RequestParam(defaultValue = "20") int size) {
+        return userService.findPage(page, size);
     }
 
     @Operation(summary = "사용자 단건 조회", description = "id로 사용자 한 명을 조회한다.")
