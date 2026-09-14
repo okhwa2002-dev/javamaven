@@ -81,6 +81,22 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 
 `JWT_SECRET` 생성·주입 상세 절차는 [docs/jwt-secret-setup.md](docs/jwt-secret-setup.md) 참고.
 
+## 테스트
+
+```bash
+mvn test      # 단위 테스트만 (Docker 불필요)
+mvn verify    # 단위 + 통합 테스트 (Testcontainers 사용, Docker 필요)
+```
+
+- 파일명 규약: `*Test.java` 는 단위(surefire), `*IT.java` 는 통합(failsafe).
+- 통합 테스트는 Testcontainers 로 실제 Postgres 컨테이너를 띄운다.
+- **Windows + Docker Desktop 로컬에서 실행 시**: Testcontainers 가 표준 파이프를 못 찾는 케이스가 있다. 그 경우 `~/.testcontainers.properties` 에 아래 한 줄을 추가한다.
+  ```
+  docker.host=npipe:////./pipe/dockerDesktopLinuxEngine
+  ```
+  (구체 파이프 이름은 `docker context ls` 로 확인)
+- CI(GitHub Actions ubuntu runner)에는 별도 설정 없이 그대로 동작한다.
+
 ## API 개요
 
 ### 인증
