@@ -15,6 +15,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.http.HttpMethod;
 
 import java.lang.reflect.Method;
 
@@ -130,6 +132,16 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.METHOD_NOT_ALLOWED, res.getStatusCode());
         assertEquals(405, res.getBody().getStatus());
+    }
+
+    @Test
+    void noResourceFound_mapsTo404() {
+        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/actuator/env");
+
+        ResponseEntity<ErrorResponse> res = handler.handleNoResource(ex, request);
+
+        assertEquals(HttpStatus.NOT_FOUND, res.getStatusCode());
+        assertEquals(404, res.getBody().getStatus());
     }
 
     @Test
