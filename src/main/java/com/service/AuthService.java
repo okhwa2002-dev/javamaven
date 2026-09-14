@@ -2,6 +2,7 @@ package com.service;
 
 import com.cmn.exception.UnauthorizedException;
 import com.cmn.jwt.JwtTokenProvider;
+import com.cmn.log.MaskingUtil;
 import com.domain.LoginRequest;
 import com.domain.LoginResponse;
 import com.domain.TokenResponse;
@@ -30,8 +31,8 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
         UserDto user = userMapper.selectByLoginId(request.getLoginId());
         if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            // 입력한 비밀번호는 로그에 남기지 않는다.
-            log.warn("Login failed loginId={}", request.getLoginId());
+            // 입력한 비밀번호는 로그에 남기지 않는다. loginId 는 마스킹.
+            log.warn("Login failed loginId={}", MaskingUtil.maskLoginId(request.getLoginId()));
             throw new UnauthorizedException(LOGIN_FAILED);
         }
 
