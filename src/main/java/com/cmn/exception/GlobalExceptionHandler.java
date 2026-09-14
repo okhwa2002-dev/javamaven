@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
 
@@ -74,6 +75,15 @@ public class GlobalExceptionHandler {
                                                              HttpServletRequest request) {
         log.warn("Data integrity violation: {}", e.getMostSpecificCause().getMessage());
         return build(HttpStatus.CONFLICT, "Resource conflict (duplicated or constraint violation)", request);
+    }
+
+    /**
+     * 매핑되지 않은 경로에 대한 요청. Spring Boot 3.2+ 는 NoResourceFoundException 을 던진다.
+     * catch-all(Exception) 에서 500 으로 삼키지 않도록 명시적으로 404 로 매핑한다.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException e, HttpServletRequest request) {
+        return build(HttpStatus.NOT_FOUND, "Resource not found", request);
     }
 
     @ExceptionHandler(Exception.class)
