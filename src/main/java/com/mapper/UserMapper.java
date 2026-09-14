@@ -1,6 +1,7 @@
 package com.mapper;
 
 import com.domain.UserDto;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -10,7 +11,9 @@ public interface UserMapper {
 
     UserDto selectByLoginId(String loginId);
 
-    List<UserDto> selectAll();
+    List<UserDto> selectPage(@Param("offset") int offset, @Param("size") int size);
+
+    long countAll();
 
     int insert(UserDto user);
 

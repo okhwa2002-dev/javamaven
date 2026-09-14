@@ -15,10 +15,15 @@
         WHERE id = #{id}
     </select>
 
-    <select id="selectAll" resultType="UserDto">
+    <select id="selectPage" resultType="UserDto">
         SELECT <include refid="userColumns"/>
         FROM users
         ORDER BY id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*) FROM users
     </select>
 
     <select id="selectByLoginId" parameterType="string" resultType="UserDto">
