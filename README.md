@@ -103,31 +103,56 @@ mvn verify    # 단위 + 통합 테스트 (Testcontainers 사용, Docker 필요)
 
 | Method | Path | 설명 | 인증 |
 |---|---|---|---|
-| POST | `/auth/login` | login_id/password로 로그인 → JWT 발급 | X |
+| POST | `/auth/login` | login_id/password로 로그인 → 액세스+리프레시 토큰 발급 | X |
+| POST | `/auth/refresh` | 리프레시 토큰 회전 + 새 액세스 토큰 발급 | X |
+| POST | `/auth/logout` | 제출된 리프레시 토큰 폐기 (멱등) | X |
+
+- 액세스 토큰 유효시간 15분, 리프레시 14일 (회전 활성)
+- 리프레시는 opaque 랜덤 문자열, DB 에는 SHA-256 해시만 저장
 
 ### 사용자
 
 | Method | Path | 설명 | 인증 |
 |---|---|---|---|
-| GET | `/users` | 전체 사용자 조회 | O |
+| GET | `/users?page=0&size=20` | 사용자 페이지 조회 (`size` 1~100) | O |
 | GET | `/users/{id}` | 사용자 단건 조회 | O |
-| POST | `/users` | 사용자 등록 (회원가입) | X |
-| PUT | `/users/{id}` | 사용자 수정 | O |
+| POST | `/users` | 사용자 등록 (회원가입, 검증 규칙 적용) | X |
+| PUT | `/users/{id}` | 사용자 수정 (username, email 만) | O |
 | DELETE | `/users/{id}` | 사용자 삭제 | O |
 
-인증이 필요한 요청은 `Authorization: Bearer <JWT>` 헤더 필수.
+인증이 필요한 요청은 `Authorization: Bearer <accessToken>` 헤더 필수.
+검증 규칙(비밀번호 복잡도, loginId 형식 등)은 [`ValidationUtil`](src/main/java/com/cmn/validation/ValidationUtil.java) 참고.
 
 ### Swagger UI
 
 - dev 프로필: `http://localhost:8080/swagger-ui.html`
 - prod 프로필: 비활성화 (외부 노출 방지)
+- 우측 상단 **Authorize** 버튼에 로그인으로 받은 accessToken 을 입력하면
+  이후 요청에 Authorization 헤더가 자동 첨부됨
+
+### Actuator
+
+| 프로필 | 노출 엔드포인트 |
+|---|---|
+| dev | `/actuator/health`, `/info`, `/metrics`, `/loggers` |
+| prod | `/actuator/health` (상세 미노출) |
+
+`env`, `beans`, `mappings`, `configprops` 는 어떤 프로필에서도 비노출 (자격증명·구조 노출 위험).
 
 ## 보안 구성
 
-- **비밀번호**: BCrypt 해시 저장
-- **인증**: JWT (HS256) + `JwtAuthInterceptor`로 요청별 검증
-- **파라미터 필터**: `ParameterSecurityFilter`가 SQL 예약어/XSS 패턴 사전 차단 (`security.param-filter.enabled`로 제어)
-- **전역 예외 처리**: `GlobalExceptionHandler`가 표준 `ErrorResponse` 로 변환
+- **비밀번호**: BCrypt 해시 저장, 길이/복잡도 검증 (영문+숫자+특수문자 각 1개 이상)
+- **인증**: JWT (HS256) + `JwtAuthInterceptor` 요청별 검증. 리프레시 토큰 회전으로 세션 무효화 지원
+- **파라미터 필터**: `ParameterSecurityFilter` 가 SQL 예약어/XSS 패턴 사전 차단
+- **보안 헤더**: `SecurityHeadersFilter` 가 X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Cache-Control 부여
+- **로그 마스킹**: 로그인 실패 로그에서 loginId 원문 대신 마스킹된 값 사용 (`MaskingUtil`)
+- **전역 예외 처리**: `GlobalExceptionHandler` 가 표준 `ErrorResponse` 로 변환 (400/401/404/405/409/500)
+
+## CI
+
+- `.github/workflows/ci.yml` — PR·main 푸시 시 `mvn verify` 자동 실행 (단위+통합)
+- main 브랜치는 GitHub 브랜치 보호 규칙으로 PR 필수 (직접 푸시 차단)
+- 로컬에도 `.githooks/pre-push` 로 실수로 main 에 직접 push 하는 것을 차단
 
 ## 개발 규칙
 
