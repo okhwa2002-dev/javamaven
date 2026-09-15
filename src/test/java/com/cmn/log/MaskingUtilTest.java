@@ -1,5 +1,6 @@
 package com.cmn.log;
 
+import com.cmn.utils.MaskingUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

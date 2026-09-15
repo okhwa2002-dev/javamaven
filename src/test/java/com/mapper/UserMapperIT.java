@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * 실제 Postgres 컨테이너에 대해 UserMapper XML/쿼리 동작을 검증한다.
- * Flyway 가 컨텍스트 기동 시 V1__init.sql 을 적용하므로 스키마는 자동 준비된다.
+ * Spring Boot 의 spring.sql.init 이 컨텍스트 기동 시 classpath:schema.sql 을 컨테이너에 적용하므로 스키마는 자동 준비된다.
  * 각 테스트는 @Transactional 로 롤백되어 격리된다.
  */
 @Testcontainers

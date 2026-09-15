@@ -1,4 +1,4 @@
-package com.cmn.validation;
+package com.cmn.utils;
 
 import java.security.SecureRandom;
 import java.util.regex.Pattern;

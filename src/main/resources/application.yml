@@ -47,11 +47,16 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5438/daily}
+    url: ${DB_URL:jdbc:postgresql://localhost:5438/daily2}
     username: ${DB_USERNAME:daily}
     # 자격증명은 기본값 없이 환경변수로만 주입
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  # schema.sql 을 기동 시 항상 실행 (재실행 안전 위해 CREATE ... IF NOT EXISTS 사용).
+  # Testcontainer IT 도 dev 프로필로 동작하므로 여기 설정을 그대로 재사용한다.
+  sql:
+    init:
+      mode: always
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
@@ -105,6 +110,10 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  # 스키마 변경은 DBA 가 수동으로 적용. 앱은 절대 자동 실행하지 않는다.
+  sql:
+    init:
+      mode: never
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}

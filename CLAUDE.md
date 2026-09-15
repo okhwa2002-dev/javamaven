@@ -6,7 +6,7 @@ Spring Boot 3.3.5 / Java 21 / PostgreSQL / MyBatis 기반 프로젝트.
 - Spring Boot 3.3.5 (Web, Validation, Actuator)
 - Java 21 (Maven)
 - MyBatis (`mybatis-spring-boot-starter` 3.0.3)
-- PostgreSQL (`org.postgresql:postgresql`) + Flyway 마이그레이션
+- PostgreSQL (`org.postgresql:postgresql`) + Spring Boot `spring.sql.init` (dev/test 만 `schema.sql` 자동 실행, prod 는 never)
 - JWT (`jjwt` 0.12.6) + BCrypt (`spring-security-crypto`)
 - 통합 테스트: Testcontainers (Postgres)
 
@@ -24,12 +24,15 @@ src/main/
 │       ├── exception/     # 전역 예외 핸들러 및 커스텀 예외
 │       ├── filter/        # ParameterSecurityFilter, SecurityHeadersFilter
 │       ├── jwt/           # JwtTokenProvider, JwtAuthInterceptor, JwtProperties
-│       ├── log/           # MaskingUtil (loginId/email 마스킹)
-│       └── validation/    # ValidationUtil (필드 규칙 상수 + 검증 함수 + 랜덤 생성기)
+│       └── utils/         # 공통 유틸
+│           ├── MaskingUtil     # loginId/email 마스킹
+│           ├── ValidationUtil  # 필드 규칙 상수 + 검증 함수 + 랜덤 생성기
+│           └── pages/          # 페이징 공통 (PageRequest, PageSupport)
 └── resources/
     ├── application.yml    # dev/prod 프로필 한 파일에 통합
+    ├── logback-spring.xml # 로그 롤링 정책
     ├── mapper/            # MyBatis XML 매퍼 (classpath:mapper/**/*.xml)
-    └── db/migration/      # Flyway 마이그레이션 (V1__init.sql, V2__xxx.sql ...)
+    └── schema.sql         # 애플리케이션 스키마. 기동 시 spring.sql.init 이 적용 (CREATE ... IF NOT EXISTS)
 ```
 
 ## 실행

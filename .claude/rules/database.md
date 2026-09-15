@@ -16,13 +16,19 @@
 - 논리 삭제: `deleted_at TIMESTAMP NULL` (사용 시)
 - Boolean: `is_<상태>` 대신 상태를 나타내는 명확한 컬럼명 사용
 
-## 쿼리 성능
+## 쿼리 성능3
 - `EXPLAIN ANALYZE`로 실행계획 확인 후 반영.
 - 대량 INSERT/UPDATE는 배치 처리.
 - 트랜잭션 범위는 최소화.
 
-## 마이그레이션 (Flyway)
-- 위치: `src/main/resources/db/migration/V<번호>__<설명>.sql` (더블 언더스코어 필수)
-- 애플리케이션 기동 시 순차 적용됨. 수동 실행 불필요.
-- **이미 적용된 파일은 수정 금지** — 체크섬 위반으로 기동 실패. 정정은 다음 번호로 `V<n+1>__fix_xxx.sql` 추가.
-- 컬럼 DROP / 타입 변경 / NOT NULL 추가 등은 배포 순서를 검토한 뒤 반영.
+## 스키마 관리 (spring.sql.init)
+- 위치: `src/main/resources/schema.sql` (단일 파일)
+- 실행 주체: Spring Boot 의 `spring.sql.init`
+  - dev / test 프로필: `mode: always` — 기동 시 자동 실행 (Testcontainer IT 도 동일하게 적용됨)
+  - prod 프로필: `mode: never` — 자동 실행 차단. DBA 가 `schema.sql` 을 참고해 수동 적용
+- **재실행 안전**을 위해 `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS` 사용. `COMMENT ON` 은 idempotent.
+- 스키마 변경 절차
+  1. `schema.sql` 을 직접 편집 (신규 테이블/컬럼 등 추가).
+  2. dev DB 에는 개발자가 필요한 `ALTER` / `DROP` 을 수동으로 반영 (앱 재기동만으로는 기존 테이블이 갱신되지 않음).
+  3. prod 반영은 배포 절차 문서(별도) 를 따른다.
+- 파괴적 변경(컬럼 DROP / 타입 변경 / NOT NULL 추가)은 반드시 리뷰 후 반영. 자동 마이그레이션 도구가 없으므로 팀 규율로 실수를 막는다.

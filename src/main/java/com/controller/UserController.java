@@ -1,6 +1,7 @@
 package com.controller;
 
 import com.cmn.exception.ErrorResponse;
+import com.cmn.utils.pages.PageRequest;
 import com.domain.PageResponse;
 import com.domain.UserCreateRequest;
 import com.domain.UserDto;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +25,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "User", description = "사용자 CRUD API")
@@ -38,12 +39,8 @@ public class UserController {
                description = "사용자를 페이지 단위로 반환한다. page 는 0-indexed, size 는 1~100 범위.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
-    public PageResponse<UserDto> list(
-            @Parameter(description = "페이지 번호(0부터 시작)", example = "0")
-            @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "페이지 크기", example = "20")
-            @RequestParam(defaultValue = "20") int size) {
-        return userService.findPage(page, size);
+    public PageResponse<UserDto> list(@ParameterObject PageRequest pageRequest) {
+        return userService.findPage(pageRequest);
     }
 
     @Operation(summary = "사용자 단건 조회", description = "id로 사용자 한 명을 조회한다.")

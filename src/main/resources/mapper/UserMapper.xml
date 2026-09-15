@@ -19,7 +19,7 @@
         SELECT <include refid="userColumns"/>
         FROM users
         ORDER BY id DESC
-        LIMIT #{size} OFFSET #{offset}
+        LIMIT #{size} h #{offset}
     </select>
 
     <select id="countAll" resultType="long">

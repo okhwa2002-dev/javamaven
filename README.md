@@ -20,20 +20,25 @@ Spring Boot 기반의 REST API 백엔드 프로젝트.
 ```
 src/main/
 ├── java/com/
-│   ├── Main.java            # 진입점 (@SpringBootApplication + @MapperScan)
-│   ├── controller/          # REST 엔드포인트 (UserController, AuthController)
-│   ├── service/             # 비즈니스 로직 (@Transactional)
-│   ├── mapper/              # MyBatis 매퍼 인터페이스
-│   ├── domain/              # DTO/VO
-│   └── cmn/                 # 공통 영역
-│       ├── config/          # Spring @Configuration
-│       ├── exception/       # 전역 예외 핸들러
-│       ├── filter/          # 파라미터 보안 필터 (SQL keyword / XSS)
-│       └── jwt/             # JWT 발급·검증, 인증 인터셉터
+│   ├── Main.java              # 진입점 (@SpringBootApplication + @EnableScheduling + @MapperScan)
+│   ├── controller/            # REST 엔드포인트 (UserController, AuthController)
+│   ├── service/               # 비즈니스 로직 (@Transactional)
+│   ├── mapper/                # MyBatis 매퍼 인터페이스
+│   ├── domain/                # DTO/VO
+│   └── cmn/                   # 공통 영역
+│       ├── config/            # Spring @Configuration
+│       ├── exception/         # 전역 예외 핸들러 + 커스텀 예외
+│       ├── filter/            # 파라미터 보안 필터 (SQL keyword / XSS), 보안 헤더 필터
+│       ├── jwt/               # JWT 발급·검증, 인증 인터셉터
+│       └── utils/             # 공통 유틸
+│           ├── MaskingUtil    # loginId/email 마스킹
+│           ├── ValidationUtil # 필드 규칙 상수 + 검증 함수
+│           └── pages/         # 페이징 공통 (PageRequest, PageSupport)
 └── resources/
-    ├── application.yml      # dev/prod 프로필 통합
-    ├── mapper/              # MyBatis XML 매퍼
-    └── db/migration/        # Flyway 마이그레이션 (V1__init.sql, V2__xxx.sql ...)
+    ├── application.yml        # dev/prod 프로필 통합
+    ├── logback-spring.xml     # 로그 롤링 정책
+    ├── mapper/                # MyBatis XML 매퍼
+    └── schema.sql             # DDL. 기동 시 spring.sql.init 이 적용 (dev/test 만)
 ```
 
 ## 실행 환경
@@ -46,11 +51,15 @@ docker compose up -d postgres
 
 기본 접속 정보 (변경은 `.env` 또는 `docker-compose.yml` 참고):
 - host/port: `localhost:5438`
-- db / user / password: `daily` / `daily` / `dailypw`
+- db / user / password: `daily2` / `daily` / `dailypw`
 
 ### 2. 스키마 생성
 
-스키마는 애플리케이션 기동 시 **Flyway** 가 `src/main/resources/db/migration/V*.sql` 을 순차 적용합니다. 새 변경분은 새 파일(`V2__xxx.sql`, `V3__xxx.sql` …)로 추가하며, 이미 배포된 파일은 수정하지 않습니다.
+**dev / test 프로필**에서는 Spring Boot 의 `spring.sql.init` 이 애플리케이션 기동 시 `src/main/resources/schema.sql` 을 자동 실행합니다. `CREATE TABLE IF NOT EXISTS` 로 재실행에 안전합니다.
+
+**prod 프로필**은 `spring.sql.init.mode: never` 로 자동 실행이 차단됩니다. 스키마 변경은 DBA 가 `schema.sql` 을 참조해 수동으로 적용합니다.
+
+스키마 변경 시에는 `schema.sql` 을 직접 수정하고, 기존 dev DB 는 개발자가 필요한 `ALTER` / `DROP` 을 수동으로 반영합니다.
 
 ### 3. 애플리케이션 실행
 
@@ -62,7 +71,7 @@ DB_PASSWORD=dailypw mvn spring-boot:run
 **prod 프로필** (포트 80, 모든 값 환경변수 필수)
 ```bash
 JWT_SECRET='<32바이트 이상 랜덤값>' \
-DB_URL='jdbc:postgresql://localhost:5438/daily' \
+DB_URL='jdbc:postgresql://localhost:5438/daily2' \
 DB_USERNAME=daily \
 DB_PASSWORD=dailypw \
 CORS_ALLOWED_ORIGINS=http://localhost:3000 \
@@ -73,7 +82,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 
 | 이름 | dev 기본값 | prod | 설명 |
 |---|---|---|---|
-| `DB_URL` | `jdbc:postgresql://localhost:5438/daily` | 필수 | DataSource URL |
+| `DB_URL` | `jdbc:postgresql://localhost:5438/daily2` | 필수 | DataSource URL |
 | `DB_USERNAME` | `daily` | 필수 | DB 사용자 |
 | `DB_PASSWORD` | — (미주입 시 실패) | 필수 | DB 비밀번호 |
 | `JWT_SECRET` | 미설정 시 임의 키 자동 생성 | **필수** (없으면 기동 중단) | HMAC-SHA256 서명 키. 32바이트 이상 |

@@ -1,6 +1,7 @@
 package com.service;
 
 import com.cmn.exception.NotFoundException;
+import com.cmn.utils.pages.PageRequest;
 import com.domain.PageResponse;
 import com.domain.UserCreateRequest;
 import com.domain.UserDto;
@@ -50,6 +51,8 @@ class UserServiceTest {
     }
 
     // ----- findPage -----
+    // 파라미터 clamp/offset 계산은 PageRequest 단위 테스트에서 검증한다.
+    // 여기서는 서비스가 PageRequest 를 매퍼에 올바르게 전달하는지만 확인한다.
 
     @Test
     void findPage_computesOffset_andReturnsMetadata() {
@@ -57,7 +60,10 @@ class UserServiceTest {
         when(userMapper.countAll()).thenReturn(45L);
         when(userMapper.selectPage(40, 20)).thenReturn(stored);
 
-        PageResponse<UserDto> res = userService.findPage(2, 20);
+        PageRequest req = new PageRequest();
+        req.setPage(2);
+        req.setSize(20);
+        PageResponse<UserDto> res = userService.findPage(req);
 
         assertEquals(2, res.getPage());
         assertEquals(20, res.getSize());
@@ -70,43 +76,14 @@ class UserServiceTest {
     void findPage_zeroTotal_skipsSelect_andReturnsEmpty() {
         when(userMapper.countAll()).thenReturn(0L);
 
-        PageResponse<UserDto> res = userService.findPage(0, 20);
+        PageRequest req = new PageRequest();
+        PageResponse<UserDto> res = userService.findPage(req);
 
         assertEquals(0L, res.getTotalElements());
         assertEquals(0, res.getTotalPages());
         assertTrue(res.getContent().isEmpty());
         verify(userMapper, org.mockito.Mockito.never())
                 .selectPage(org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.anyInt());
-    }
-
-    @Test
-    void findPage_negativePage_clampedToZero() {
-        when(userMapper.countAll()).thenReturn(1L);
-        when(userMapper.selectPage(0, 10)).thenReturn(List.of(new UserDto()));
-
-        PageResponse<UserDto> res = userService.findPage(-3, 10);
-
-        assertEquals(0, res.getPage());
-    }
-
-    @Test
-    void findPage_sizeAboveMax_clampedTo100() {
-        when(userMapper.countAll()).thenReturn(1L);
-        when(userMapper.selectPage(0, 100)).thenReturn(List.of(new UserDto()));
-
-        PageResponse<UserDto> res = userService.findPage(0, 9999);
-
-        assertEquals(100, res.getSize());
-    }
-
-    @Test
-    void findPage_sizeBelowOne_clampedToOne() {
-        when(userMapper.countAll()).thenReturn(1L);
-        when(userMapper.selectPage(0, 1)).thenReturn(List.of(new UserDto()));
-
-        PageResponse<UserDto> res = userService.findPage(0, 0);
-
-        assertEquals(1, res.getSize());
     }
 
     // ----- create -----
