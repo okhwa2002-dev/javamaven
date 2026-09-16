@@ -1,8 +1,8 @@
 package com.controller;
 
 import com.cmn.exception.ErrorResponse;
-import com.cmn.utils.pages.PageRequest;
-import com.domain.PageResponse;
+import com.cmn.exception.NotFoundException;
+import com.cmn.jwt.AuthenticatedUser;
 import com.domain.UserCreateRequest;
 import com.domain.UserDto;
 import com.domain.UserUpdateRequest;
@@ -16,13 +16,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,22 +35,17 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "사용자 목록 조회",
-               description = "사용자를 페이지 단위로 반환한다. page 는 0-indexed, size 는 1~100 범위.")
-    @ApiResponse(responseCode = "200", description = "조회 성공")
-    @GetMapping
-    public PageResponse<UserDto> list(@ParameterObject PageRequest pageRequest) {
-        return userService.findPage(pageRequest);
-    }
-
-    @Operation(summary = "사용자 단건 조회", description = "id로 사용자 한 명을 조회한다.")
+    @Operation(summary = "사용자 단건 조회",
+               description = "본인 정보만 조회할 수 있다. 다른 id 는 404 로 응답한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "404", description = "사용자 없음",
+            @ApiResponse(responseCode = "404", description = "사용자 없음 또는 접근 권한 없음",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{id}")
-    public UserDto get(@Parameter(description = "사용자 id", example = "1") @PathVariable Long id) {
+    public UserDto get(@Parameter(description = "사용자 id", example = "1") @PathVariable Long id,
+                       @RequestAttribute(AuthenticatedUser.ATTRIBUTE) AuthenticatedUser authUser) {
+        assertSelf(id, authUser);
         return userService.findById(id);
     }
 
@@ -62,27 +57,40 @@ public class UserController {
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "사용자 수정", description = "id에 해당하는 사용자를 수정한다.")
+    @Operation(summary = "사용자 수정",
+               description = "본인 정보만 수정할 수 있다. 다른 id 는 404 로 응답한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "수정 성공"),
-            @ApiResponse(responseCode = "404", description = "사용자 없음",
+            @ApiResponse(responseCode = "404", description = "사용자 없음 또는 접근 권한 없음",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PutMapping("/{id}")
     public UserDto update(@Parameter(description = "사용자 id", example = "1") @PathVariable Long id,
-                          @Valid @RequestBody UserUpdateRequest request) {
+                          @Valid @RequestBody UserUpdateRequest request,
+                          @RequestAttribute(AuthenticatedUser.ATTRIBUTE) AuthenticatedUser authUser) {
+        assertSelf(id, authUser);
         return userService.update(id, request);
     }
 
-    @Operation(summary = "사용자 삭제", description = "id에 해당하는 사용자를 삭제한다.")
+    @Operation(summary = "사용자 삭제",
+               description = "본인 정보만 삭제할 수 있다. 다른 id 는 404 로 응답한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "삭제 성공"),
-            @ApiResponse(responseCode = "404", description = "사용자 없음",
+            @ApiResponse(responseCode = "404", description = "사용자 없음 또는 접근 권한 없음",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@Parameter(description = "사용자 id", example = "1") @PathVariable Long id) {
+    public ResponseEntity<Void> delete(@Parameter(description = "사용자 id", example = "1") @PathVariable Long id,
+                                       @RequestAttribute(AuthenticatedUser.ATTRIBUTE) AuthenticatedUser authUser) {
+        assertSelf(id, authUser);
         userService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // 존재 자체를 감추기 위해 인가 실패도 404 로 응답한다 (enumeration 방지).
+    private void assertSelf(Long pathId, AuthenticatedUser authUser) {
+        if (!authUser.userId().equals(pathId)) {
+            throw new NotFoundException("User not found: " + pathId);
+        }
     }
 }

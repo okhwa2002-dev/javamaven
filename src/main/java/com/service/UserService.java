@@ -1,9 +1,6 @@
 package com.service;
 
 import com.cmn.exception.NotFoundException;
-import com.cmn.utils.pages.PageRequest;
-import com.cmn.utils.pages.PageSupport;
-import com.domain.PageResponse;
 import com.domain.UserCreateRequest;
 import com.domain.UserDto;
 import com.domain.UserUpdateRequest;
@@ -27,13 +24,6 @@ public class UserService {
             throw new NotFoundException("User not found: " + id);
         }
         return user;
-    }
-
-    @Transactional(readOnly = true)
-    public PageResponse<UserDto> findPage(PageRequest req) {
-        return PageSupport.of(req,
-                userMapper::countAll,
-                r -> userMapper.selectPage(r.getOffset(), r.getSafeSize()));
     }
 
     @Transactional

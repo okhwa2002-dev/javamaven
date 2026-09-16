@@ -123,14 +123,14 @@ mvn verify    # 단위 + 통합 테스트 (Testcontainers 사용, Docker 필요)
 
 | Method | Path | 설명 | 인증 |
 |---|---|---|---|
-| GET | `/users?page=0&size=20` | 사용자 페이지 조회 (`size` 1~100) | O |
-| GET | `/users/{id}` | 사용자 단건 조회 | O |
+| GET | `/users/{id}` | 사용자 단건 조회 (본인만) | O |
 | POST | `/users` | 사용자 등록 (회원가입, 검증 규칙 적용) | X |
-| PUT | `/users/{id}` | 사용자 수정 (username, email 만) | O |
-| DELETE | `/users/{id}` | 사용자 삭제 | O |
+| PUT | `/users/{id}` | 사용자 수정 (본인만, username·email) | O |
+| DELETE | `/users/{id}` | 사용자 삭제 (본인만) | O |
 
 인증이 필요한 요청은 `Authorization: Bearer <accessToken>` 헤더 필수.
-검증 규칙(비밀번호 복잡도, loginId 형식 등)은 [`ValidationUtil`](src/main/java/com/cmn/validation/ValidationUtil.java) 참고.
+`/users/{id}` 계열은 토큰의 `sub`(userId) 와 path id 가 일치할 때만 접근 가능하며, 불일치 시 존재를 감추기 위해 404 로 응답한다 (관리자 롤 도입 전).
+검증 규칙(비밀번호 복잡도, loginId 형식 등)은 [`ValidationUtil`](src/main/java/com/cmn/utils/ValidationUtil.java) 참고.
 
 ### Swagger UI
 

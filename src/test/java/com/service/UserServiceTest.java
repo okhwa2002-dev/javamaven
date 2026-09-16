@@ -1,8 +1,6 @@
 package com.service;
 
 import com.cmn.exception.NotFoundException;
-import com.cmn.utils.pages.PageRequest;
-import com.domain.PageResponse;
 import com.domain.UserCreateRequest;
 import com.domain.UserDto;
 import com.domain.UserUpdateRequest;
@@ -15,13 +13,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,42 +43,6 @@ class UserServiceTest {
         when(userMapper.selectById(99L)).thenReturn(null);
 
         assertThrows(NotFoundException.class, () -> userService.findById(99L));
-    }
-
-    // ----- findPage -----
-    // 파라미터 clamp/offset 계산은 PageRequest 단위 테스트에서 검증한다.
-    // 여기서는 서비스가 PageRequest 를 매퍼에 올바르게 전달하는지만 확인한다.
-
-    @Test
-    void findPage_computesOffset_andReturnsMetadata() {
-        List<UserDto> stored = List.of(new UserDto(), new UserDto());
-        when(userMapper.countAll()).thenReturn(45L);
-        when(userMapper.selectPage(40, 20)).thenReturn(stored);
-
-        PageRequest req = new PageRequest();
-        req.setPage(2);
-        req.setSize(20);
-        PageResponse<UserDto> res = userService.findPage(req);
-
-        assertEquals(2, res.getPage());
-        assertEquals(20, res.getSize());
-        assertEquals(45L, res.getTotalElements());
-        assertEquals(3, res.getTotalPages()); // ceil(45/20) = 3
-        assertSame(stored, res.getContent());
-    }
-
-    @Test
-    void findPage_zeroTotal_skipsSelect_andReturnsEmpty() {
-        when(userMapper.countAll()).thenReturn(0L);
-
-        PageRequest req = new PageRequest();
-        PageResponse<UserDto> res = userService.findPage(req);
-
-        assertEquals(0L, res.getTotalElements());
-        assertEquals(0, res.getTotalPages());
-        assertTrue(res.getContent().isEmpty());
-        verify(userMapper, org.mockito.Mockito.never())
-                .selectPage(org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.anyInt());
     }
 
     // ----- create -----

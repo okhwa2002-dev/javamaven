@@ -10,8 +10,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -101,33 +99,5 @@ class UserMapperIT {
 
         assertEquals(1, userMapper.deleteById(u.getId()));
         assertEquals(0, userMapper.deleteById(u.getId()), "이미 삭제된 대상은 0 반환");
-    }
-
-    @Test
-    void selectPage_returnsDescendingByIdAndRespectsLimitOffset() {
-        UserDto a = newUser("aaa");
-        UserDto b = newUser("bbb");
-        UserDto c = newUser("ccc");
-        userMapper.insert(a);
-        userMapper.insert(b);
-        userMapper.insert(c);
-
-        // 최신 2건: c, b (id DESC)
-        List<UserDto> firstPage = userMapper.selectPage(0, 2);
-        assertEquals(2, firstPage.size());
-        assertEquals("ccc", firstPage.get(0).getLoginId());
-        assertEquals("bbb", firstPage.get(1).getLoginId());
-
-        List<UserDto> secondPage = userMapper.selectPage(2, 2);
-        assertEquals("aaa", secondPage.get(0).getLoginId());
-    }
-
-    @Test
-    void countAll_matchesInserted() {
-        long before = userMapper.countAll();
-        userMapper.insert(newUser("cnt1"));
-        userMapper.insert(newUser("cnt2"));
-
-        assertEquals(before + 2, userMapper.countAll());
     }
 }
