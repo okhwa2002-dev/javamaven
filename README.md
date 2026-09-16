@@ -32,8 +32,7 @@ src/main/
 │       ├── jwt/               # JWT 발급·검증, 인증 인터셉터
 │       └── utils/             # 공통 유틸
 │           ├── MaskingUtil    # loginId/email 마스킹
-│           ├── ValidationUtil # 필드 규칙 상수 + 검증 함수
-│           └── pages/         # 페이징 공통 (PageRequest, PageSupport)
+│           └── ValidationUtil # 필드 규칙 상수 + 검증 함수
 └── resources/
     ├── application.yml        # dev/prod 프로필 통합
     ├── logback-spring.xml     # 로그 롤링 정책

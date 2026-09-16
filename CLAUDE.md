@@ -26,8 +26,7 @@ src/main/
 │       ├── jwt/           # JwtTokenProvider, JwtAuthInterceptor, JwtProperties
 │       └── utils/         # 공통 유틸
 │           ├── MaskingUtil     # loginId/email 마스킹
-│           ├── ValidationUtil  # 필드 규칙 상수 + 검증 함수 + 랜덤 생성기
-│           └── pages/          # 페이징 공통 (PageRequest, PageSupport)
+│           └── ValidationUtil  # 필드 규칙 상수 + 검증 함수 + 랜덤 생성기
 └── resources/
     ├── application.yml    # dev/prod 프로필 한 파일에 통합
     ├── logback-spring.xml # 로그 롤링 정책
