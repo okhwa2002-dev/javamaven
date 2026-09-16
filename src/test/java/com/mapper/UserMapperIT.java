@@ -10,15 +10,13 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * 실제 Postgres 컨테이너에 대해 UserMapper XML/쿼리 동작을 검증한다.
- * Flyway 가 컨텍스트 기동 시 V1__init.sql 을 적용하므로 스키마는 자동 준비된다.
+ * Spring Boot 의 spring.sql.init 이 컨텍스트 기동 시 classpath:schema.sql 을 컨테이너에 적용하므로 스키마는 자동 준비된다.
  * 각 테스트는 @Transactional 로 롤백되어 격리된다.
  */
 @Testcontainers
@@ -101,33 +99,5 @@ class UserMapperIT {
 
         assertEquals(1, userMapper.deleteById(u.getId()));
         assertEquals(0, userMapper.deleteById(u.getId()), "이미 삭제된 대상은 0 반환");
-    }
-
-    @Test
-    void selectPage_returnsDescendingByIdAndRespectsLimitOffset() {
-        UserDto a = newUser("aaa");
-        UserDto b = newUser("bbb");
-        UserDto c = newUser("ccc");
-        userMapper.insert(a);
-        userMapper.insert(b);
-        userMapper.insert(c);
-
-        // 최신 2건: c, b (id DESC)
-        List<UserDto> firstPage = userMapper.selectPage(0, 2);
-        assertEquals(2, firstPage.size());
-        assertEquals("ccc", firstPage.get(0).getLoginId());
-        assertEquals("bbb", firstPage.get(1).getLoginId());
-
-        List<UserDto> secondPage = userMapper.selectPage(2, 2);
-        assertEquals("aaa", secondPage.get(0).getLoginId());
-    }
-
-    @Test
-    void countAll_matchesInserted() {
-        long before = userMapper.countAll();
-        userMapper.insert(newUser("cnt1"));
-        userMapper.insert(newUser("cnt2"));
-
-        assertEquals(before + 2, userMapper.countAll());
     }
 }

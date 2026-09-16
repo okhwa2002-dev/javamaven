@@ -1,4 +1,4 @@
-package com.cmn.log;
+package com.cmn.utils;
 
 /**
  * 로그에 사용자 식별정보를 남길 때 원문 대신 마스킹된 값을 사용하기 위한 유틸.

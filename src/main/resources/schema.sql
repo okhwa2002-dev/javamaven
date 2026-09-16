@@ -1,11 +1,13 @@
--- 초기 스키마.
--- 이후 스키마 변경은 새 파일 (V2__xxx.sql, V3__xxx.sql ...) 로 추가한다.
--- 이 파일은 이미 적용된 이후에는 절대 수정하지 않는다 (체크섬 위반).
+-- 애플리케이션 스키마.
+-- Spring Boot 의 spring.sql.init 이 기동 시 실행한다.
+-- dev/test 프로필에서만 자동 실행(prod 는 never), 재실행 안전을 위해 IF NOT EXISTS 사용.
+-- 스키마 변경 시 이 파일을 직접 수정하고, dev DB 는 개발자가 수동으로 ALTER/DROP 후 반영한다.
+-- prod 반영은 배포 절차 문서(별도) 를 따른다.
 
 -- ============================================================
 -- users : 애플리케이션 사용자 계정
 -- ============================================================
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id         BIGSERIAL PRIMARY KEY,
     username   VARCHAR(50)  NOT NULL UNIQUE,
     email      VARCHAR(100) NOT NULL UNIQUE,
@@ -29,7 +31,7 @@ COMMENT ON COLUMN users.updated_at IS '최근 수정 시각';
 --   raw 값이 아니라 SHA-256 해시(64자 hex)만 저장한다.
 --   유출 시 DB 만으로는 원본 토큰을 복원할 수 없다.
 -- ============================================================
-CREATE TABLE refresh_tokens (
+CREATE TABLE IF NOT EXISTS refresh_tokens (
     id         BIGSERIAL PRIMARY KEY,
     user_id    BIGINT       NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash VARCHAR(64)  NOT NULL UNIQUE,
@@ -37,7 +39,7 @@ CREATE TABLE refresh_tokens (
     revoked_at TIMESTAMP    NULL,
     created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens (user_id);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens (user_id);
 
 COMMENT ON TABLE  refresh_tokens             IS 'JWT 리프레시 토큰. raw 값이 아니라 SHA-256 해시만 저장';
 COMMENT ON COLUMN refresh_tokens.id          IS 'PK';

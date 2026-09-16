@@ -1,7 +1,6 @@
 package com.service;
 
 import com.cmn.exception.NotFoundException;
-import com.domain.PageResponse;
 import com.domain.UserCreateRequest;
 import com.domain.UserDto;
 import com.domain.UserUpdateRequest;
@@ -11,14 +10,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
-
-    // 페이지 크기 상한. 클라이언트가 큰 값을 넣어도 서버 부담을 제한한다.
-    private static final int MAX_PAGE_SIZE = 100;
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
@@ -30,23 +24,6 @@ public class UserService {
             throw new NotFoundException("User not found: " + id);
         }
         return user;
-    }
-
-    /**
-     * 사용자 목록을 페이지 단위로 조회한다.
-     * page 는 0-indexed. 잘못된 값은 기본값으로 보정한다.
-     */
-    @Transactional(readOnly = true)
-    public PageResponse<UserDto> findPage(int page, int size) {
-        int safePage = Math.max(page, 0);
-        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-        int offset = safePage * safeSize;
-
-        long total = userMapper.countAll();
-        List<UserDto> content = total == 0
-                ? List.of()
-                : userMapper.selectPage(offset, safeSize);
-        return new PageResponse<>(content, safePage, safeSize, total);
     }
 
     @Transactional

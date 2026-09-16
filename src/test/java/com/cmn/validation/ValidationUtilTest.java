@@ -1,5 +1,6 @@
 package com.cmn.validation;
 
+import com.cmn.utils.ValidationUtil;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 

@@ -1,7 +1,6 @@
 package com.service;
 
 import com.cmn.exception.NotFoundException;
-import com.domain.PageResponse;
 import com.domain.UserCreateRequest;
 import com.domain.UserDto;
 import com.domain.UserUpdateRequest;
@@ -14,13 +13,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,66 +43,6 @@ class UserServiceTest {
         when(userMapper.selectById(99L)).thenReturn(null);
 
         assertThrows(NotFoundException.class, () -> userService.findById(99L));
-    }
-
-    // ----- findPage -----
-
-    @Test
-    void findPage_computesOffset_andReturnsMetadata() {
-        List<UserDto> stored = List.of(new UserDto(), new UserDto());
-        when(userMapper.countAll()).thenReturn(45L);
-        when(userMapper.selectPage(40, 20)).thenReturn(stored);
-
-        PageResponse<UserDto> res = userService.findPage(2, 20);
-
-        assertEquals(2, res.getPage());
-        assertEquals(20, res.getSize());
-        assertEquals(45L, res.getTotalElements());
-        assertEquals(3, res.getTotalPages()); // ceil(45/20) = 3
-        assertSame(stored, res.getContent());
-    }
-
-    @Test
-    void findPage_zeroTotal_skipsSelect_andReturnsEmpty() {
-        when(userMapper.countAll()).thenReturn(0L);
-
-        PageResponse<UserDto> res = userService.findPage(0, 20);
-
-        assertEquals(0L, res.getTotalElements());
-        assertEquals(0, res.getTotalPages());
-        assertTrue(res.getContent().isEmpty());
-        verify(userMapper, org.mockito.Mockito.never())
-                .selectPage(org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.anyInt());
-    }
-
-    @Test
-    void findPage_negativePage_clampedToZero() {
-        when(userMapper.countAll()).thenReturn(1L);
-        when(userMapper.selectPage(0, 10)).thenReturn(List.of(new UserDto()));
-
-        PageResponse<UserDto> res = userService.findPage(-3, 10);
-
-        assertEquals(0, res.getPage());
-    }
-
-    @Test
-    void findPage_sizeAboveMax_clampedTo100() {
-        when(userMapper.countAll()).thenReturn(1L);
-        when(userMapper.selectPage(0, 100)).thenReturn(List.of(new UserDto()));
-
-        PageResponse<UserDto> res = userService.findPage(0, 9999);
-
-        assertEquals(100, res.getSize());
-    }
-
-    @Test
-    void findPage_sizeBelowOne_clampedToOne() {
-        when(userMapper.countAll()).thenReturn(1L);
-        when(userMapper.selectPage(0, 1)).thenReturn(List.of(new UserDto()));
-
-        PageResponse<UserDto> res = userService.findPage(0, 0);
-
-        assertEquals(1, res.getSize());
     }
 
     // ----- create -----

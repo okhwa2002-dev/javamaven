@@ -45,16 +45,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- DB 마이그레이션. Flyway 10 부터 postgres 지원은 별도 아티팩트에 있다. -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-postgresql</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

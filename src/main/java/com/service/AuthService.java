@@ -2,7 +2,7 @@ package com.service;
 
 import com.cmn.exception.UnauthorizedException;
 import com.cmn.jwt.JwtTokenProvider;
-import com.cmn.log.MaskingUtil;
+import com.cmn.utils.MaskingUtil;
 import com.domain.LoginRequest;
 import com.domain.LoginResponse;
 import com.domain.TokenResponse;
